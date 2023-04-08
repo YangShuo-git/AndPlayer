@@ -13,10 +13,10 @@ android {
         versionCode 1
         versionName "1.0"
         //项目的ndk配置需和使用的库一致,项目的配置在这里设置
-        ndk {
-            abiFilters "armeabi-v7a"
+        ndk{
+            abiFilters 'armeabi-v7a'
         }
-        //指定jniLibs目录(只有这个目录里的.so库会被加载到apk)
+        //指定jniLibs目录(只有这里的so库会被加载到apk中)
         sourceSets {
             main {
                 jniLibs.srcDirs = ["src/main/jniLibs"]
