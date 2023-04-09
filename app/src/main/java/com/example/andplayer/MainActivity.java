@@ -4,6 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,6 +15,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.media.MediaCodec;
+import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -21,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("andplayer");
     }
     Surface surface;
+    private AudioTrack audioTrack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +46,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {    }
         });
+
+        Button btn = (Button) findViewById(R.id.btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                File file = new File(Environment.getExternalStorageDirectory(), "dngl.mp3");
+                MainActivity.this.playSound(file.getAbsolutePath());
+            }
+        });
+
     }
     public boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
@@ -58,6 +74,35 @@ public class MainActivity extends AppCompatActivity {
         play(folderurl, surface);
     }
 
+    //  native层回调该函数  创建AudioTrack
+    public void createTrack(int sampleRateInHz, int channels) {
+        Toast.makeText(this, "初始化音频播放器", Toast.LENGTH_SHORT).show();
+
+        int channaleConfig;  // 就是声道数
+        if (channels == 1) {
+            channaleConfig = AudioFormat.CHANNEL_OUT_MONO;
+        } else if (channels == 2) {
+            channaleConfig = AudioFormat.CHANNEL_OUT_STEREO;
+        }else {
+            channaleConfig = AudioFormat.CHANNEL_OUT_MONO;
+        }
+        int buffersize = AudioTrack.getMinBufferSize(sampleRateInHz, channaleConfig, AudioFormat.ENCODING_PCM_16BIT);
+
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channaleConfig, AudioFormat.ENCODING_PCM_16BIT,
+                buffersize,
+                AudioTrack.MODE_STREAM);
+        audioTrack.play();
+    }
+
+    //  native层回调该函数  播放音频，需要buffer pcm数据内容 pcm实际长度  主线程不仅解码，而且播放，这种方式有问题
+    public void playTrack(byte[] buffer, int length) {
+
+        if (audioTrack != null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+            audioTrack.write(buffer, 0, length);
+        }
+    }
+
 
     public native int play(String url, Surface surface);
+    public native int playSound(String url);
 }
