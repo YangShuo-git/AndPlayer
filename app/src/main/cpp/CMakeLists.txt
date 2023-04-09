@@ -29,34 +29,11 @@ find_library( # Sets the name of the path variable.
         # you want CMake to locate.
         log)
 
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
-
 # ffmpeg头文件目录
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# 添加一个系统查找目录
+# 添加系统环境变量  一个系统查找目录
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a")
-
-# 加载ffmpeg动态库
-#add_library(avcodec SHARED IMPORTED)
-#set_target_properties(avcodec PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a/libavcodec.so)
-#
-#add_library(avformat SHARED IMPORTED)
-#set_target_properties(avformat PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a/libavformat.so)
-#
-#add_library(avutil SHARED IMPORTED)
-#set_target_properties(avutil PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a/libavutil.so)
-#
-#add_library(avfilter SHARED IMPORTED)
-#set_target_properties(avfilter PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a/libavfilter.so)
-#
-#add_library(swresample SHARED IMPORTED)
-#set_target_properties(swresample PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a/libswresample.so)
-#
-#add_library(swscale SHARED IMPORTED)
-#set_target_properties(swscale PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/armeabi-v7a/libswscale.so)
 
 target_link_libraries( # Specifies the target library.
         andplayer
@@ -67,6 +44,8 @@ target_link_libraries( # Specifies the target library.
         avfilter
         swresample
         swscale
+
+        android
 
         # Links the target library to the log library
         # included in the NDK.

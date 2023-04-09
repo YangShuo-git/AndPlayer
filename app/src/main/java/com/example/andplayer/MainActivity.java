@@ -21,14 +21,11 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("andplayer");
     }
     Surface surface;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkPermission();
-//        MediaCodec mediaCodec= MediaCodec.createByCodecName("video/avc");
-//        mediaCodec.start();
 
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surface);
         final SurfaceHolder surfaceViewHolder = surfaceView.getHolder();
@@ -36,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
         surfaceViewHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                //获取文件路径，这里将文件放置在手机根目录下(sdcard)
                 surface = surfaceViewHolder.getSurface();
             }
             @Override
@@ -57,7 +53,8 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
     public void play(View view) {
-        String folderurl = new File(Environment.getExternalStorageDirectory(), "brave_960x540.flv").getAbsolutePath();
+        //获取文件路径，这里将文件放置在手机根目录下的sdcard目录
+        String folderurl = new File(Environment.getExternalStorageDirectory(), "input.mp4").getAbsolutePath();
         play(folderurl, surface);
     }
 
