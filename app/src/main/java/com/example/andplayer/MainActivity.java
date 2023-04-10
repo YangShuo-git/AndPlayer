@@ -21,7 +21,7 @@ import android.widget.Toast;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
-    // Used to load the 'andplayer' library on application startup.
+    // 首先要加载jni的库
     static {
         System.loadLibrary("andplayer");
     }
@@ -93,10 +93,8 @@ public class MainActivity extends AppCompatActivity {
                 AudioTrack.MODE_STREAM);
         audioTrack.play();
     }
-
     //  native层回调该函数  播放音频，需要buffer pcm数据内容 pcm实际长度  主线程不仅解码，而且播放，这种方式有问题
     public void playTrack(byte[] buffer, int length) {
-
         if (audioTrack != null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
             audioTrack.write(buffer, 0, length);
         }

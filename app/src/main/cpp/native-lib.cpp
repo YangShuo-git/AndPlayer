@@ -150,7 +150,12 @@ Java_com_example_andplayer_MainActivity_play(JNIEnv *env, jobject thiz, jstring 
     }
     /* ************************** 解码渲染结束 ************************** */
 
-    avformat_free_context(formatCtx);
+    av_frame_free(&avFrame);
+    av_free(avPacket);
+    sws_freeContext(swsCtx);
+    avcodec_close(codecCtx);
+    avformat_close_input(&formatCtx);
+
     env->ReleaseStringUTFChars(url_, url);
     return -1;
 }
@@ -202,19 +207,20 @@ Java_com_example_andplayer_MainActivity_playSound(JNIEnv *env, jobject thiz, jst
     /* *************************** 播放准备 *************************** */
     AVPacket *packet = av_packet_alloc();
     AVFrame  *frame = av_frame_alloc();
-    SwrContext *swrContext = swr_alloc();  // 转换器上下文
+    SwrContext *swrCtx = swr_alloc();  // 转换器上下文
 
-    uint64_t out_ch_layout = AV_CH_LAYOUT_STEREO;
-    enum AVSampleFormat out_formart = AV_SAMPLE_FMT_S16;
-    int out_sample_rate = codecCtx->sample_rate;
-    int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
+    uint64_t out_channels_layout = AV_CH_LAYOUT_STEREO;   // 通道布局
+    enum AVSampleFormat out_formart = AV_SAMPLE_FMT_S16;  // 采样格式
+    int out_sample_rate = codecCtx->sample_rate;          // 采样率
+    int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);  // 声道数
     LOGD("out_sample_rate： %d\tout_channels: %d\n", out_sample_rate, out_channels);
 
-    // 设置转换器上下文参数并对其初始化  通道布局、采样格式、采样率   (否则不能播放)
-    swr_alloc_set_opts(swrContext, out_ch_layout, out_formart, out_sample_rate,
+    // 设置转换器上下文参数并对其初始化   (否则不能播放)
+    swr_alloc_set_opts(swrCtx,
+                       out_channels_layout,out_formart,out_sample_rate,
                        codecCtx->channel_layout, codecCtx->sample_fmt, codecCtx->sample_rate,
                        0,NULL);
-    swr_init(swrContext);
+    swr_init(swrCtx);
 
     // 缓冲区 是要喂给AudioTrack播放  采样率*声道数，就是每秒的采样点数
     uint8_t *out_buffer = (uint8_t *) av_malloc(out_sample_rate * out_channels);
@@ -232,7 +238,7 @@ Java_com_example_andplayer_MainActivity_playSound(JNIEnv *env, jobject thiz, jst
         if (packet->stream_index == audioIndex) {
             int ret = avcodec_send_packet(codecCtx,packet);
             if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF){
-                LOGD("解码出错");
+                LOGD("解码出错\n");
                 return -1;
             }
             ret = avcodec_receive_frame(codecCtx,frame);
@@ -242,10 +248,10 @@ Java_com_example_andplayer_MainActivity_playSound(JNIEnv *env, jobject thiz, jst
                 break;
             }
 
-            // 处理解码后的frame  重采样
-            swr_convert(swrContext, &out_buffer, out_sample_rate * out_channels,
+            // 处理解码后的frame，输出到out_buffer
+            swr_convert(swrCtx, &out_buffer, out_sample_rate * out_channels,
                         (const uint8_t **)(frame->data), frame->nb_samples);
-            // 一个音频帧的字节大小
+            // 获取一个音频帧的字节大小  (out_channels*nb_samples*byte_per_sample)
             int size = av_samples_get_buffer_size(NULL, out_channels, frame->nb_samples,AV_SAMPLE_FMT_S16, 1);
 
             // 回调到java层送给AudioTrack播放   uint8_t * ---> jbyteArray
@@ -255,6 +261,12 @@ Java_com_example_andplayer_MainActivity_playSound(JNIEnv *env, jobject thiz, jst
             env->DeleteLocalRef(audio_sample_array);
         }
     }
-    env->ReleaseStringUTFChars(url_, url);
     /* *********************** 解码、重采样、播放结束 ********************** */
+
+    av_frame_free(&frame);
+    av_free(packet);
+    swr_free(&swrCtx);
+    avcodec_close(codecCtx);
+    avformat_close_input(&formatCtx);
+    env->ReleaseStringUTFChars(url_, url);
 }

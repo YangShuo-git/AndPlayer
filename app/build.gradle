@@ -19,7 +19,7 @@ android {
         //指定jniLibs目录(只有这里的so库会被加载到apk中)
         sourceSets {
             main {
-                jniLibs.srcDirs = ["src/main/jniLibs"]
+                jniLibs.srcDirs = ["src/main/cpp/jniLibs"]
             }
         }
 
