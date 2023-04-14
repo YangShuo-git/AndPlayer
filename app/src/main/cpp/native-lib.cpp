@@ -31,7 +31,7 @@ ANativeWindow_Buffer windowBuffer;
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_example_andplayer_MainActivity_play(JNIEnv *env, jobject thiz, jstring url_,
-                                              jobject surface) {
+                                             jobject surface) {
     // 获取文件的地址
     const char *url = env->GetStringUTFChars(url_, 0);
 

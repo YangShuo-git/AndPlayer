@@ -14,7 +14,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.media.MediaCodec;
 import android.widget.Button;
 import android.widget.Toast;
 
