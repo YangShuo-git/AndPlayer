@@ -1,105 +1,189 @@
 package com.example.andplayer;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.example.andplayer.ui.utils.DisplayUtil;
+import com.example.andplayer.lisnter.IPlayerListener;
+import com.example.andplayer.lisnter.IOnPreparedListener;
+import com.example.andplayer.opengl.AndGLSurfaceView;
+import com.example.andplayer.service.AndPlayer;
+
 
 public class MainActivity extends AppCompatActivity {
-    // 首先要加载jni的库
+    private AndPlayer andPlayer;
+    private AndGLSurfaceView andGLSurfaceView;
+    private SeekBar seekBar;
+    private TextView tvTime;
+    private Button muteBtn;
+    private boolean isMuted = false;
+    private int position;
+    private boolean isSeek = false;
+    List<String> paths = new ArrayList<>();
+
     static {
         System.loadLibrary("andplayer");
     }
-    Surface surface;
-    private AudioTrack audioTrack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        andGLSurfaceView = findViewById(R.id.andglsurfaceview);
+        seekBar = findViewById(R.id.seekbar);
+        tvTime = findViewById(R.id.tv_time);
+        muteBtn = findViewById(R.id.mute);
         checkPermission();
 
-        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surface);
-        final SurfaceHolder surfaceViewHolder = surfaceView.getHolder();
+        andPlayer = new AndPlayer();
+        andPlayer.setAndGLSurfaceView(andGLSurfaceView);
 
-        surfaceViewHolder.addCallback(new SurfaceHolder.Callback() {
+        File file = new File(Environment.getExternalStorageDirectory(),"input.mkv");
+        paths.add(file.getAbsolutePath());
+//        file = new File(Environment.getExternalStorageDirectory(),"input.avi");
+//        paths.add(file.getAbsolutePath());
+
+//        file = new File(Environment.getExternalStorageDirectory(),"input.rmvb");
+//        file = new File(Environment.getExternalStorageDirectory(),"input.mp4");
+        file = new File(Environment.getExternalStorageDirectory(),"brave_960x540.flv");
+        paths.add(file.getAbsolutePath());
+//        paths.add("http://mn.maliuedu.com/music/input.mp4");
+        andPlayer.setPlayerListener(new IPlayerListener() {
             @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                surface = surfaceViewHolder.getSurface();
+            public void onLoad(boolean load) {
+
             }
             @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {    }
+            public void onCurrentTime(int currentTime, int totalTime) {
+                // isSeek 需要当前时间、总时间
+                if(!isSeek && totalTime > 0)
+                {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            seekBar.setProgress(currentTime * 100 / totalTime);
+                            tvTime.setText( DisplayUtil.secdsToDateFormat(currentTime)
+                                    + "/" + DisplayUtil.secdsToDateFormat(totalTime));
+                        }
+                    });
+                }
+            }
             @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {    }
-        });
+            public void onError(int code, String msg) {
 
-        Button btn = (Button) findViewById(R.id.btn);
-        btn.setOnClickListener(new View.OnClickListener() {
+            }
             @Override
-            public void onClick(View view) {
-                File file = new File(Environment.getExternalStorageDirectory(), "dngl.mp3");
-                MainActivity.this.playSound(file.getAbsolutePath());
+            public void onPause(boolean pause) {
+
+            }
+            @Override
+            public void onDbValue(int db) {
+
+            }
+            @Override
+            public void onComplete() {
+
+            }
+            @Override
+            public String onNext() {
+                return null;
             }
         });
 
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                position = progress * andPlayer.getDuration() / 100;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                isSeek = true;
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                andPlayer.seek(position);
+                isSeek = false;
+            }
+        });
     }
+
     public boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{
                     Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.CAMERA
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
             }, 1);
+
         }
         return false;
     }
-    public void play(View view) {
-        //获取文件路径，这里将文件放置在手机根目录下的sdcard目录
-        String folderurl = new File(Environment.getExternalStorageDirectory(), "input.mp4").getAbsolutePath();
-        play(folderurl, surface);
+
+    /**
+     * 播放控制：开始 停止 暂停 恢复 切换
+     */
+    public void begin(View view) {
+        andPlayer.setOnPreparedListener(new IOnPreparedListener() {
+            @Override
+            public void onPrepared() {
+                andPlayer.start();  // 监听到Prepared()完成，就开始解码
+            }
+        });
+
+        File file = new File(Environment.getExternalStorageDirectory(),"brave_960x540.flv");
+        andPlayer.setSource(file.getAbsolutePath());
+
+        // andPlayer.setSource("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
+        andPlayer.prepared();
     }
-
-    //  native层回调该函数  创建AudioTrack
-    public void createTrack(int sampleRateInHz, int channels) {
-        Toast.makeText(this, "初始化音频播放器", Toast.LENGTH_SHORT).show();
-
-        int channaleConfig;  // 就是声道数
-        if (channels == 1) {
-            channaleConfig = AudioFormat.CHANNEL_OUT_MONO;
-        } else if (channels == 2) {
-            channaleConfig = AudioFormat.CHANNEL_OUT_STEREO;
-        }else {
-            channaleConfig = AudioFormat.CHANNEL_OUT_MONO;
+    public void pause(View view) {
+        andPlayer.pause();
+    }
+    public void resume(View view) {
+        andPlayer.resume();
+    }
+    public void stop(View view) {
+        andPlayer.stop();
+    }
+    public void next(View view) {
+        //wlPlayer.playNext("/mnt/shared/Other/testvideo/楚乔传第一集.mp4");
+    }
+    public void speed1(View view) {
+        andPlayer.setSpeed(0.5f);
+    }
+    public void speed2(View view) {
+        andPlayer.setSpeed(2.0f);
+    }
+    public void mute(View view) {
+        if (!isMuted) {
+            andPlayer.setMute(2);
+            isMuted = true;
+        } else {
+            andPlayer.setMute(3);
+            isMuted = false;
         }
-        int buffersize = AudioTrack.getMinBufferSize(sampleRateInHz, channaleConfig, AudioFormat.ENCODING_PCM_16BIT);
-
-        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channaleConfig, AudioFormat.ENCODING_PCM_16BIT,
-                buffersize,
-                AudioTrack.MODE_STREAM);
-        audioTrack.play();
     }
-    //  native层回调该函数  播放音频，需要buffer pcm数据内容 pcm实际长度  主线程不仅解码，而且播放，这种方式有问题
-    public void playTrack(byte[] buffer, int length) {
-        if (audioTrack != null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
-            audioTrack.write(buffer, 0, length);
-        }
+    public void highTone(View view) {
+        andPlayer.setTone(2.0f);
     }
-
-
-    public native int play(String url, Surface surface);
-    public native int playSound(String url);
+    public void lowTone(View view) {
+        andPlayer.setTone(0.5f);
+    }
+    public void normal(View view) {
+        andPlayer.setSpeed(1.0f);
+        andPlayer.setTone(1.0f);
+    }
 }
