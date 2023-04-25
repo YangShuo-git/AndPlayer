@@ -38,12 +38,12 @@
             android:layout_weight="1"
             android:text="开始"
             android:onClick="begin"/>
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="停止"
-            android:onClick="stop"/>
+<!--        <Button-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="停止"-->
+<!--            android:onClick="stop"/>-->
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,12 +56,12 @@
             android:layout_weight="1"
             android:text="播放"
             android:onClick="resume"/>
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="切换"
-            android:onClick="next"/>
+<!--        <Button-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="切换"-->
+<!--            android:onClick="next"/>-->
 
     </LinearLayout>
     <LinearLayout
