@@ -143,10 +143,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        File file = new File(Environment.getExternalStorageDirectory(),"brave_960x540.flv");
-        andPlayer.setSource(file.getAbsolutePath());
+//        File file = new File(Environment.getExternalStorageDirectory(),"brave_960x540.flv");
+//        andPlayer.setSource(file.getAbsolutePath());
 
-        // andPlayer.setSource("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
+        andPlayer.setSource("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
         andPlayer.prepared();
     }
     public void pause(View view) {
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         andPlayer.stop();
     }
     public void next(View view) {
-        //wlPlayer.playNext("/mnt/shared/Other/testvideo/楚乔传第一集.mp4");
+        //andPlayer.playNext("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
     }
     public void speed1(View view) {
         andPlayer.setSpeed(0.5f);
