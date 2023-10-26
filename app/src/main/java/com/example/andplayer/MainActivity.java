@@ -12,15 +12,15 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.andplayer.lisnter.IOnPreparedListener;
+import com.example.andplayer.lisnter.IPlayerListener;
+import com.example.andplayer.opengl.AndGLSurfaceView;
+import com.example.andplayer.service.AndPlayer;
+import com.example.andplayer.ui.utils.DisplayUtil;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.example.andplayer.ui.utils.DisplayUtil;
-import com.example.andplayer.lisnter.IPlayerListener;
-import com.example.andplayer.lisnter.IOnPreparedListener;
-import com.example.andplayer.opengl.AndGLSurfaceView;
-import com.example.andplayer.service.AndPlayer;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -41,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);  // 设置的文件是layout文件夹下的activity_main.xml
+
         andGLSurfaceView = findViewById(R.id.andglsurfaceview);
         seekBar = findViewById(R.id.seekbar);
         tvTime = findViewById(R.id.tv_time);
@@ -75,28 +76,29 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             seekBar.setProgress(currentTime * 100 / totalTime);
-                            tvTime.setText( DisplayUtil.secdsToDateFormat(currentTime)
+                            tvTime.setText(DisplayUtil.secdsToDateFormat(currentTime)
                                     + "/" + DisplayUtil.secdsToDateFormat(totalTime));
                         }
                     });
                 }
             }
+
             @Override
             public void onError(int code, String msg) {
-
             }
+
             @Override
             public void onPause(boolean pause) {
-
             }
+
             @Override
             public void onDbValue(int db) {
-
             }
+
             @Override
             public void onComplete() {
-
             }
+
             @Override
             public String onNext() {
                 return null;
@@ -143,10 +145,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        File file = new File(Environment.getExternalStorageDirectory(),"brave_960x540.flv");
-//        andPlayer.setSource(file.getAbsolutePath());
-
-        andPlayer.setSource("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
+        File file = new File(Environment.getExternalStorageDirectory(), "brave_960x540.flv");
+        andPlayer.setSource(file.getAbsolutePath());
+//        andPlayer.setSource("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
         andPlayer.prepared();
     }
     public void pause(View view) {
