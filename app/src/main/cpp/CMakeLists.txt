@@ -5,17 +5,19 @@ message(${CMAKE_CURRENT_SOURCE_DIR})
 
 project("andplayer")
 
-# 引入soundtouch的头文件与库
-include_directories(soundtouch/include)
-include_directories(soundtouch/SoundTouch)
+# ffmpeg是直接引入so库，需要头文件
+# opensl是引入源文件，在cmake中进行编译，和native-lib.cpp等文件编入了andplayer
 
 # 引入ffmpeg头文件目录
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-# 设置ffmpeg库的查找目录 (下面就可以直接写库的名字了)
-# CMAKE_CXX_FLAGS用于存储 C++ 编译器的标志
-# 作用是将 JNI 库文件所在的路径添加到 C++ 编译器的标志中，以便编译器在链接阶段能够正确地查找和链接 JNI 库
+# 设置ffmpeg库的查找目录 (作用就是下面就可以直接写ffmpeg库的名字)
+#   CMAKE_CXX_FLAGS用于存储 C++ 编译器的标志
+#   作用是将 JNI 库文件所在的路径添加到 C++ 编译器的标志中，以便编译器在链接阶段能够正确地查找和链接 JNI 库
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_CURRENT_SOURCE_DIR}/jniLibs/${ANDROID_ABI}")
 
+# 引入soundtouch的头文件与库
+include_directories(soundtouch/include)
+include_directories(soundtouch/SoundTouch)
 
 aux_source_directory(. SOURCE)
 aux_source_directory(./soundtouch/SoundTouch SOURCE_ST)

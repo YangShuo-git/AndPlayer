@@ -76,7 +76,7 @@ int AndFFmpeg::demuxFFmpegThead() {
     formatCtx = avformat_alloc_context();
     // 2.打开文件并解析
     if(avformat_open_input(&formatCtx, url, NULL, NULL) != 0){
-        LOGE("Couldn't open input stream.\n");
+        LOGE("Couldn't open input stream %s.\n", url);
         return -1;
     }
     // 3.查找流的上下文信息，并填充Stream的MetaData信息
