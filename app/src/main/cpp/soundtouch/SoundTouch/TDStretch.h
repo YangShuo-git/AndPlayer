@@ -90,7 +90,7 @@ namespace soundtouch
 //#define DEFAULT_SEEKWINDOW_MS       15
 #define DEFAULT_SEEKWINDOW_MS       USE_AUTO_SEEKWINDOW_LEN
 
-/// Giving this value for the seek window length sets automatic parameter value
+/// Giving this value for the isSeek window length sets automatic parameter value
 /// according to tempo setting (recommended)
 #define USE_AUTO_SEEKWINDOW_LEN     0
 

@@ -8,8 +8,6 @@ AndFFmpeg *ffmpeg = NULL;
 AndCallJava *callJava = NULL;
 AndPlayStatus *playStatus = NULL;
 
-bool isExit = false;
-
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 {
@@ -25,17 +23,16 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_andplayer_service_AndPlayer_n_1prepared(JNIEnv *env, jobject thiz, jstring source_) {
-    // 获取const char*
-    const char *source = env->GetStringUTFChars(source_,0);
+Java_com_example_andplayer_service_AndPlayer_n_1prepared(JNIEnv *env, jobject thiz,
+                                                         jstring _source) {
+    const char *source = env->GetStringUTFChars(_source, 0);
 
     if (ffmpeg == NULL) {
         if (callJava == NULL) {
-            callJava = new AndCallJava(javaVM,env,thiz);
+            callJava = new AndCallJava(javaVM, env, thiz);
         }
         playStatus = new AndPlayStatus();
-        ffmpeg = new AndFFmpeg(playStatus, callJava,source);
-        ffmpeg->callJava = callJava;
+        ffmpeg = new AndFFmpeg(playStatus, callJava, source);
         ffmpeg->prepared();
     }
 
@@ -52,36 +49,26 @@ Java_com_example_andplayer_service_AndPlayer_n_1start(JNIEnv *env, jobject thiz)
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_andplayer_service_AndPlayer_n_1stop(JNIEnv *env, jobject thiz) {
-    if(isExit)
-    {
-        return;
-    }
-    // 正在退出 只调用一次
-    isExit = true;
-    if(ffmpeg != NULL)
-    {
+    if(ffmpeg != NULL) {
         ffmpeg->release();
-        delete (ffmpeg);
-        if(callJava != NULL)
-        {
-            delete(callJava);
+        delete ffmpeg;
+        ffmpeg = nullptr;
+        if (callJava != NULL) {
+            delete callJava;
             callJava = NULL;
         }
-        if(playStatus != NULL)
-        {
-            delete(playStatus);
+        if (playStatus != NULL) {
+            delete playStatus;
             playStatus = NULL;
         }
     }
-    isExit = false;
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_andplayer_service_AndPlayer_n_1pause(JNIEnv *env, jobject thiz) {
     if(ffmpeg != NULL)
     {
-        if (!playStatus->pause)
-        {
+        if (!playStatus->isPaused) {
             ffmpeg->pause();
         }
     }
@@ -89,9 +76,8 @@ Java_com_example_andplayer_service_AndPlayer_n_1pause(JNIEnv *env, jobject thiz)
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_andplayer_service_AndPlayer_n_1seek(JNIEnv *env, jobject thiz, jint secds) {
-    LOGE("最开始%d  ", secds);
-    if(ffmpeg != NULL)
-    {
+    LOGE("seek to %d  ", secds);
+    if (ffmpeg != NULL) {
         ffmpeg->seek(secds);
     }
 }

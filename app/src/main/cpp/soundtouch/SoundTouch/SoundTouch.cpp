@@ -415,7 +415,7 @@ bool SoundTouch::setSetting(int settingId, int value)
             return true;
 
         case SETTING_SEEKWINDOW_MS:
-            // change time-stretch seek window length parameter
+            // change time-stretch isSeek window length parameter
             pTDStretch->setParameters(sampleRate, sequenceMs, value, overlapMs);
             return true;
 

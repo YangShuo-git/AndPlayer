@@ -215,7 +215,7 @@ typedef struct AVIOContext {
      *                             |/ / / / / / / / / / / /|              |
      *                             +-----------------------+--------------+
      *                               buf_ptr can be in this
-     *                               due to a backward seek
+     *                               due to a backward isSeek
      *
      *                            pos
      *               +-------------+----------------------------------------------+
@@ -230,11 +230,14 @@ typedef struct AVIOContext {
                                  buffer+buffer_size if the read function returned
                                  less data than requested, e.g. for streams where
                                  no more data has been received yet. */
-    void *opaque;           /**< A private pointer, passed to the read/write/seek/...
+    void *opaque;           /**< A private pointer, passed to the read/write/isSeek/...
                                  functions. */
     int (*read_packet)(void *opaque, uint8_t *buf, int buf_size);
+
     int (*write_packet)(void *opaque, uint8_t *buf, int buf_size);
+
     int64_t (*seek)(void *opaque, int64_t offset, int whence);
+
     int64_t pos;            /**< position in the file of the current buffer */
     int eof_reached;        /**< true if was unable to read due to error or eof */
     int write_flag;         /**< true if open for writing */
@@ -268,7 +271,7 @@ typedef struct AVIOContext {
     /**
      * avio_read and avio_write should if possible be satisfied directly
      * instead of going through a buffer, and avio_seek will always
-     * call the underlying seek function directly.
+     * call the underlying isSeek function directly.
      */
     int direct;
 
@@ -279,7 +282,7 @@ typedef struct AVIOContext {
     int64_t bytes_read;
 
     /**
-     * seek statistic
+     * isSeek statistic
      * This field is internal to libavformat and access from outside is not allowed.
      */
     int seek_count;
@@ -298,7 +301,7 @@ typedef struct AVIOContext {
     int orig_buffer_size;
 
     /**
-     * Threshold to favor readahead over seek.
+     * Threshold to favor readahead over isSeek.
      * This is current internal only, do not use from outside.
      */
     int short_seek_threshold;
@@ -340,7 +343,7 @@ typedef struct AVIOContext {
     int64_t written;
 
     /**
-     * Maximum reached position before a backward seek in the write buffer,
+     * Maximum reached position before a backward isSeek in the write buffer,
      * used keeping track of already written data for a later flush.
      */
     unsigned char *buf_ptr_max;
@@ -524,17 +527,17 @@ int avio_put_str16be(AVIOContext *s, const char *str);
 void avio_write_marker(AVIOContext *s, int64_t time, enum AVIODataMarkerType type);
 
 /**
- * ORing this as the "whence" parameter to a seek function causes it to
+ * ORing this as the "whence" parameter to a isSeek function causes it to
  * return the filesize without seeking anywhere. Supporting this is optional.
- * If it is not supported then the seek function will return <0.
+ * If it is not supported then the isSeek function will return <0.
  */
 #define AVSEEK_SIZE 0x10000
 
 /**
- * Passing this flag as the "whence" parameter to a seek function causes it to
- * seek by any means (like reopening and linear reading) or other normally unreasonable
+ * Passing this flag as the "whence" parameter to a isSeek function causes it to
+ * isSeek by any means (like reopening and linear reading) or other normally unreasonable
  * means that can be extremely slow.
- * This may be ignored by the seek code.
+ * This may be ignored by the isSeek code.
  */
 #define AVSEEK_FORCE 0x20000
 
@@ -696,7 +699,7 @@ int avio_get_str16be(AVIOContext *pb, int maxlen, char *buf, int buflen);
  * Use direct mode.
  * avio_read and avio_write should if possible be satisfied directly
  * instead of going through a buffer, and avio_seek will always
- * call the underlying seek function directly.
+ * call the underlying isSeek function directly.
  */
 #define AVIO_FLAG_DIRECT 0x8000
 
@@ -819,7 +822,7 @@ const AVClass *avio_protocol_get_class(const char *name);
  * protocol (e.g. MMS).
  *
  * @param h     IO context from which to call the read_pause function pointer
- * @param pause 1 for pause, 0 for resume
+ * @param pause 1 for isPaused, 0 for resume
  */
 int     avio_pause(AVIOContext *h, int pause);
 
@@ -827,7 +830,7 @@ int     avio_pause(AVIOContext *h, int pause);
  * Seek to a given timestamp relative to some component stream.
  * Only meaningful if using a network streaming protocol (e.g. MMS.).
  *
- * @param h IO context from which to call the seek function pointers
+ * @param h IO context from which to call the isSeek function pointers
  * @param stream_index The stream index that the timestamp is relative to.
  *        If stream_index is (-1) the timestamp should be in AV_TIME_BASE
  *        units from the beginning of the presentation.

@@ -28,10 +28,12 @@ static void* decodePlay(void *data) {
 
     // 使用OpenSL ES处理解码后的音频数据
     andAudio->initOpenSLES();
+    LOGD("exit audio decode thread.");
     pthread_exit(&andAudio->thread_play);
 }
 
 void AndAudio::play() {
+    LOGD("create audio decode thread.");
     pthread_create(&thread_play, NULL, decodePlay, this);
 }
 
@@ -115,11 +117,9 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void * handler)
 // 解码一帧音频，并进行重采样
 // 主要是获取解码后的pcm数据(outBuffer)及其实际大小(bufferSize)  因为opensl需要这两个
 int AndAudio::resampleAudio(void **pcmBuf) {
-    while(playStatus != NULL && !playStatus->exit)
-    {
+    while (playStatus != NULL && !playStatus->isExited) {
         avPacket = av_packet_alloc();
-        if(queue->getAvpacket(avPacket) != 0)
-        {
+        if (queue->getAvpacket(avPacket) != 0) {
             // 释放3步曲
             av_packet_free(&avPacket);  // 释放AVPacket里的容器 data
             av_free(avPacket);          // 释放对象avPacket
@@ -373,11 +373,10 @@ void AndAudio::setMute(int mute) {
 // 获取整理之后的波形  倍速 波形变小；慢放 波形变大
 int AndAudio::getSoundTouchData() {
     //我们先取数据 pcm就在out_buffer
-    while(playStatus != NULL && !playStatus->exit){
+    while (playStatus != NULL && !playStatus->isExited) {
 //        LOGE("------------------循环获取音频数据---------------------------finished %d",finished)
         out_buffer = NULL;
-        if(finished)
-        {
+        if (finished) {
             // 开始整理波形，没有完成
             finished = false;
             // 从网络流 文件 读取数据 out_buffer  字节数量  out_buffer   是一个旧波

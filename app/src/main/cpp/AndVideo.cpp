@@ -21,25 +21,24 @@ static void * decodePlay(void *handler)
 {
     AndVideo *andVideo = static_cast<AndVideo *>(handler);
 
-    //  死循环轮训
-    while(andVideo->playStatus != NULL && !andVideo->playStatus->exit)
-    {
-        // 解码 seek puase  队列没有数据
-        if(andVideo->playStatus->seek)
-        {
+    // 死循环轮询，可以优化为条件变量（CPU 零占用等待，响应即时）
+    // 如果直接使用空循环，线程会持续占用 CPU 核心，导致 CPU 使用率飙升
+    // av_usleep() 会让线程休眠，使 CPU 有机会调度其他任务，降低资源占用
+    // 播放器处于Seek或暂停，视频解码线程需要暂停工作，直到状态恢复
+    // 通过定期休眠，线程可以间歇性地检查状态变化（如 isSeek 或 isPaused），避免高频轮询
+    while (andVideo->playStatus != NULL && !andVideo->playStatus->isExited) {
+        if (andVideo->playStatus->isSeek) {
             av_usleep(1000 * 100);
             continue;
         }
-        if(andVideo->playStatus->pause)
-        {
+        if (andVideo->playStatus->isPaused) {
             av_usleep(1000 * 100);
             continue;
         }
         if (andVideo->queue->getQueueSize() == 0) {
             // 队列中无数据，需要休眠  请慢慢等待  回调应用层
-            if(!andVideo->playStatus->load)
-            {
-                andVideo->playStatus->load = true;
+            if (!andVideo->playStatus->isLoad) {
+                andVideo->playStatus->isLoad = true;
                 andVideo->callJava->onCallLoad(CHILD_THREAD, true);
                 av_usleep(1000 * 100);
                 continue;
@@ -84,7 +83,6 @@ static void * decodePlay(void *handler)
         {
             // avFrame->data[0]代表y，avFrame->data[1]代表u， avFrame->data[2]代表v
             // av_usleep(33 * 1000);  // 不考虑同步的情况下  视频延迟33ms
-
             double diff = andVideo->getFrameDiffTime(avFrame);
             double delay = andVideo->getDelayTime(diff) * 1000000;
             av_usleep(delay);
@@ -94,9 +92,8 @@ static void * decodePlay(void *handler)
                     avFrame->data[0],
                     avFrame->data[1],
                     avFrame->data[2]);
-        } else
-        {
-             // 当前视频不是YUV420P格式，就要使用转换器将视频格式转为YUV420P
+        } else {
+            // 当前视频不是YUV420P格式，就要使用转换器将视频格式转为YUV420P
             AVFrame *pFrameYUV420P = av_frame_alloc();
             int num = av_image_get_buffer_size(
                     AV_PIX_FMT_YUV420P,
@@ -154,11 +151,13 @@ static void * decodePlay(void *handler)
         avPacket = NULL;
         pthread_mutex_unlock(&andVideo->codecMutex);
     }
+    LOGD("exit video decode thread.");
     pthread_exit(&andVideo->thread_play);
 }
 
 void AndVideo::play() {
-    // 子线程 解码 播放
+    // 创建子线程 解码 播放
+    LOGD("create video decode thread.");
     pthread_create(&thread_play, NULL, decodePlay, this);
 }
 

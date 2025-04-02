@@ -17,7 +17,7 @@ extern "C" {
 
 class AndFFmpeg {
 public:
-    pthread_t demuxThead;
+    pthread_t demuxThread;
     pthread_mutex_t seek_mutex;
     pthread_mutex_t init_mutex;
     bool exit = false;
@@ -35,7 +35,7 @@ public:
 public:
     AndFFmpeg(AndPlayStatus *playStatus, AndCallJava *callJava, const char *url);
 
-    int demuxFFmpegThead();
+    int demuxFFmpegThread();
 
     // 解封装
     void prepared();

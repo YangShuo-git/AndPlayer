@@ -64,7 +64,7 @@ int PeakFinder::findTop(const float *data, int peakpos) const
 
     refvalue = data[peakpos];
 
-    // seek within ±10 points
+    // isSeek within ï¿½10 points
     start = peakpos - 10;
     if (start < minPos) start = minPos;
     end = peakpos + 10;
@@ -79,7 +79,7 @@ int PeakFinder::findTop(const float *data, int peakpos) const
         }
     }
 
-    // failure if max value is at edges of seek range => it's not peak, it's at slope.
+    // failure if max value is at edges of isSeek range => it's not peak, it's at slope.
     if ((peakpos == start) || (peakpos == end)) return 0;
 
     return peakpos;
@@ -249,15 +249,14 @@ double PeakFinder::detectPeak(const float *data, int aminPos, int amaxPos)
     // - sometimes the highest peak can be Nth harmonic of the true base peak yet 
     // just a slightly higher than the true base
 
-    for (i = 3; i < 10; i ++)
-    {
+    for (i = 3; i < 10; i ++) {
         double peaktmp, harmonic;
-        int i1,i2;
+        int i1, i2;
 
-        harmonic = (double)i * 0.5;
-        peakpos = (int)(highPeak / harmonic + 0.5f);
+        harmonic = (double) i * 0.5;
+        peakpos = (int) (highPeak / harmonic + 0.5f);
         if (peakpos < minPos) break;
-        peakpos = findTop(data, peakpos);   // seek true local maximum index
+        peakpos = findTop(data, peakpos);   // isSeek true local maximum index
         if (peakpos == 0) continue;         // no local max here
 
         // calculate mass-center of possible harmonic peak
@@ -265,7 +264,7 @@ double PeakFinder::detectPeak(const float *data, int aminPos, int amaxPos)
 
         // accept harmonic peak if 
         // (a) it is found
-        // (b) is within ±4% of the expected harmonic interval
+        // (b) is within ï¿½4% of the expected harmonic interval
         // (c) has at least half x-corr value of the max. peak
 
         double diff = harmonic * peaktmp / highPeak;

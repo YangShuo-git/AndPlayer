@@ -5,5 +5,9 @@
 #include "AndPlayStatus.h"
 
 AndPlayStatus::AndPlayStatus() {
-    exit = false;
+    isExited = false;
+    isPlaying = false;
+    isPaused = false;
+    isSeek = false;
+    isLoad = false;
 }

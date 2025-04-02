@@ -145,9 +145,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        File file = new File(Environment.getExternalStorageDirectory(), "brave_960x540.flv");
-        andPlayer.setSource(file.getAbsolutePath());
-//        andPlayer.setSource("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
+        //File file = new File(Environment.getExternalStorageDirectory(), "brave_960x540.flv");
+        //andPlayer.setSource(file.getAbsolutePath());
+        //andPlayer.setSource("http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4");
+        //andPlayer.setSource("http://demo-videos.qnsdk.com/VR-Panorama-Equirect-Angular-4500k.mp4");
+        andPlayer.setSource("http://vjs.zencdn.net/v/oceans.mp4");
         andPlayer.prepared();
     }
     public void pause(View view) {

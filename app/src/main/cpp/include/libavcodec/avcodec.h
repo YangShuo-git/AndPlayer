@@ -674,7 +674,7 @@ typedef struct AVCodecContext {
      *
      *   For decoding, this is the number of samples the decoder needs to
      *   output before the decoder's output is valid. When seeking, you should
-     *   start decoding this many samples prior to your desired seek point.
+     *   start decoding this many samples prior to your desired isSeek point.
      *
      * - encoding: Set by libavcodec.
      * - decoding: Set by libavcodec.
@@ -2866,12 +2866,12 @@ int avcodec_parameters_to_context(AVCodecContext *codec,
  * av_dict_set(&opts, "b", "2.5M", 0);
  * codec = avcodec_find_decoder(AV_CODEC_ID_H264);
  * if (!codec)
- *     exit(1);
+ *     isExited(1);
  *
  * context = avcodec_alloc_context3(codec);
  *
  * if (avcodec_open2(context, codec, opts) < 0)
- *     exit(1);
+ *     isExited(1);
  * @endcode
  *
  * @param avctx The context to initialize.

@@ -8,22 +8,25 @@ import com.example.andplayer.lisnter.IPlayerListener;
 import com.example.andplayer.opengl.AndGLSurfaceView;
 
 public class AndPlayer {
-    IOnPreparedListener onPreparedListener;
-    private AndGLSurfaceView andGLSfView;
-    private IPlayerListener playerListener;
-    private int duration = 0;  // 总时长
+    static final String TAG = "AndPlayer";
 
     static {
         System.loadLibrary("andplayer");
     }
+
+    IOnPreparedListener onPreparedListener;
+    private AndGLSurfaceView andGLSfView;
+    private IPlayerListener playerListener;
+    private int duration = 0;  // 总时长
     private String source; // 数据源
-    public void setSource(String source)
-    {
+
+    public void setSource(String source) {
         this.source = source;
     }
+
     public void setAndGLSurfaceView(AndGLSurfaceView surfaceview) {
         this.andGLSfView = surfaceview;
-        Log.i("AndPlayer", "setAndGLSurfaceView: -------------" + this.hashCode());
+        Log.i(TAG, "setAndGLSurfaceView: -------------" + this.hashCode());
     }
 
     /**
@@ -37,17 +40,15 @@ public class AndPlayer {
     }
 
     /**
-     * 在Native层调用java的方法  回调的方式，应用层入口
+     * native层调用java的方法
      */
     public void onCallPrepared() {
-        Log.d("AndPlayer", "onCallPrepared");
         if (onPreparedListener != null) {
             onPreparedListener.onPrepared();
         }
     }
     public void onCallTimeInfo(int currentTime, int totalTime)
     {
-        Log.d("AndPlayer", "onCallTimeInfo");
         duration = totalTime;
         if (playerListener == null) {
             return;
@@ -56,7 +57,6 @@ public class AndPlayer {
     }
     public void onCallRenderYUV(int width, int height, byte[] y, byte[] u, byte[] v)
     {
-        Log.d("AndPlayer", "onCallParpared");
         // opengl渲染  的java版本
         if( this.andGLSfView != null)
         {
@@ -66,20 +66,21 @@ public class AndPlayer {
     public void onCallLoad(boolean load)
     {
 //        队列 网络 有问题    加载框
+        // TODO
     }
 
 
     public void prepared()
     {
         if(TextUtils.isEmpty(source)) {
-            Log.e("AndPlayer","prepared source is empty");
+            Log.e(TAG, "prepared source is empty");
             return;
         }
-        // 开启解封装线程  调用Native层方法  是准备工作
+        // 开启解封装线程
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.d("AndPlayer","start pthread to prepare");
+                Log.d(TAG, "start pthread to prepare");
                 n_prepared(source);
             }
         }).start();
@@ -87,7 +88,7 @@ public class AndPlayer {
     public void start()
     {
         if(TextUtils.isEmpty(source)) {
-            Log.e("AndPlayer","start source is empty");
+            Log.e(TAG, "start source is empty");
             return;
         }
         // 开启解码线程  调用Native层方法  开始解码播放

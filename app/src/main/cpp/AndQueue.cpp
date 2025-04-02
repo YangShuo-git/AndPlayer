@@ -27,13 +27,10 @@ int AndQueue::putAvpacket(AVPacket *packet) {
 int AndQueue::getAvpacket(AVPacket *packet) {
     pthread_mutex_lock(&mutexPacket);
 
-    while(playstatus != NULL && !playstatus->exit)
-    {
-        if(queuePacket.size() > 0)
-        {
-            AVPacket *avPacket =  queuePacket.front();
-            if(av_packet_ref(packet, avPacket) == 0)
-            {
+    while (playstatus != NULL && !playstatus->isExited) {
+        if (queuePacket.size() > 0) {
+            AVPacket *avPacket = queuePacket.front();
+            if (av_packet_ref(packet, avPacket) == 0) {
                 queuePacket.pop();
             }
             av_packet_free(&avPacket);

@@ -96,7 +96,7 @@ double TDStretchSSE::calcCrossCorr(const float *pV1, const float *pV2, double &a
     if (((ulongptr)pV1) & 15) return -1e50;    // skip unaligned locations
 
 #else
-    // No cheating allowed, use unaligned load & take the resulting
+    // No cheating allowed, use unaligned isLoad & take the resulting
     // performance hit.
     #define _MM_LOAD    _mm_loadu_ps
 #endif 

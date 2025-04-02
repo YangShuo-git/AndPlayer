@@ -357,13 +357,13 @@ int TDStretch::seekBestOverlapPositionFull(const SAMPLETYPE *refPos)
 }
 
 
-// Quick seek algorithm for improved runtime-performance: First roughly scans through the 
+// Quick isSeek algorithm for improved runtime-performance: First roughly scans through the
 // correlation area, and then scan surroundings of two best preliminary correlation candidates
 // with improved precision
 //
 // Based on testing:
 // - This algorithm gives on average 99% as good match as the full algorith
-// - this quick seek algorithm finds the best match on ~90% of cases
+// - this quick isSeek algorithm finds the best match on ~90% of cases
 // - on those 10% of cases when this algorithm doesn't find best match, 
 //   it still finds on average ~90% match vs. the best possible match
 int TDStretch::seekBestOverlapPositionQuick(const SAMPLETYPE *refPos)
@@ -403,7 +403,7 @@ int TDStretch::seekBestOverlapPositionQuick(const SAMPLETYPE *refPos)
         // Calculates correlation value for the mixing position corresponding
         // to 'i'
         corr = (float)calcCrossCorr(refPos + channels*i, pMidBuffer, norm);
-        // heuristic rule to slightly favour values close to mid of the seek range
+        // heuristic rule to slightly favour values close to mid of the isSeek range
         float tmp = (float)(2 * i - seekLength - 1) / (float)seekLength;
         corr = ((corr + 0.1f) * (1.0f - 0.25f * tmp * tmp));
 
@@ -529,7 +529,7 @@ void TDStretch::calcSeqParameters()
     #define AUTOSEQ_K           ((AUTOSEQ_AT_MAX - AUTOSEQ_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW))
     #define AUTOSEQ_C           (AUTOSEQ_AT_MIN - (AUTOSEQ_K) * (AUTOSEQ_TEMPO_LOW))
 
-    // seek-window-ms setting values at above low & top tempoq
+    // isSeek-window-ms setting values at above low & top tempoq
     #define AUTOSEEK_AT_MIN     20.0
     #define AUTOSEEK_AT_MAX     15.0
     #define AUTOSEEK_K          ((AUTOSEEK_AT_MAX - AUTOSEEK_AT_MIN) / (AUTOSEQ_TEMPO_TOP - AUTOSEQ_TEMPO_LOW))
@@ -553,7 +553,7 @@ void TDStretch::calcSeqParameters()
         seekWindowMs = (int)(seek + 0.5);
     }
 
-    // Update seek window lengths
+    // Update isSeek window lengths
     seekWindowLength = (sampleRate * sequenceMs) / 1000;
     if (seekWindowLength < 2 * overlapLength) 
     {

@@ -245,7 +245,7 @@
  *
  * Some of possible use cases:
  * - an "open file" dialog to choose files from a remote location,
- * - a recursive media finder providing a player with an ability to play all
+ * - a recursive media finder providing a player with an ability to isPlaying all
  * files from a given directory.
  *
  * @subsection lavf_io_dirlist_open Opening a directory
@@ -1287,7 +1287,7 @@ typedef struct AVProgram {
                                          (streams are added dynamically) */
 #define AVFMTCTX_UNSEEKABLE    0x0002 /**< signal that the stream is definitely
                                          not seekable, and attempts to call the
-                                         seek function will fail. For some
+                                         isSeek function will fail. For some
                                          network protocols (e.g. HLS), this can
                                          change dynamically at runtime. */
 
@@ -1996,7 +1996,7 @@ attribute_deprecated void av_format_set_open_cb(AVFormatContext *s, AVOpenCallba
 
 /**
  * This function will cause global side data to be injected in the next packet
- * of each stream as well as after any subsequent seek.
+ * of each stream as well as after any subsequent isSeek.
  */
 void av_format_inject_global_side_data(AVFormatContext *s);
 
@@ -2451,7 +2451,7 @@ int av_seek_frame(AVFormatContext *s, int stream_index, int64_t timestamp,
  * @param flags flags
  * @return >=0 on success, error code otherwise
  *
- * @note This is part of the new seek API which is still under construction.
+ * @note This is part of the new isSeek API which is still under construction.
  */
 int avformat_seek_file(AVFormatContext *s, int stream_index, int64_t min_ts, int64_t ts, int64_t max_ts, int flags);
 
@@ -2495,9 +2495,9 @@ void avformat_close_input(AVFormatContext **s);
  * @}
  */
 
-#define AVSEEK_FLAG_BACKWARD 1 ///< seek backward
+#define AVSEEK_FLAG_BACKWARD 1 ///< isSeek backward
 #define AVSEEK_FLAG_BYTE     2 ///< seeking based on position in bytes
-#define AVSEEK_FLAG_ANY      4 ///< seek to any frame, even non-keyframes
+#define AVSEEK_FLAG_ANY      4 ///< isSeek to any frame, even non-keyframes
 #define AVSEEK_FLAG_FRAME    8 ///< seeking based on frame number
 
 /**
@@ -2831,7 +2831,7 @@ int av_find_default_stream_index(AVFormatContext *s);
  * @param flags if AVSEEK_FLAG_BACKWARD then the returned index will correspond
  *                 to the timestamp which is <= the requested one, if backward
  *                 is 0, then it will be >=
- *              if AVSEEK_FLAG_ANY seek to any frame, only keyframes otherwise
+ *              if AVSEEK_FLAG_ANY isSeek to any frame, only keyframes otherwise
  * @return < 0 if no such timestamp could be found
  */
 int av_index_search_timestamp(AVStream *st, int64_t timestamp, int flags);

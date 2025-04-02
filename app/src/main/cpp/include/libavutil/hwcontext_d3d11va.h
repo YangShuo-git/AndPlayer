@@ -33,7 +33,7 @@
  *
  * av_hwdevice_ctx_create() for this device type supports a key named "debug"
  * for the AVDictionary entry. If this is set to any value, the device creation
- * code will try to load various supported D3D debugging layers.
+ * code will try to isLoad various supported D3D debugging layers.
  */
 
 #include <d3d11.h>
