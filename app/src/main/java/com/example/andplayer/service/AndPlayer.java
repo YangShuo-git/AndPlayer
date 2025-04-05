@@ -40,7 +40,8 @@ public class AndPlayer {
     }
 
     /**
-     * native层调用java的方法
+     * native层调用的java方法
+     * 如何设置java到native层的回调呢，可以通过这种方式
      */
     public void onCallPrepared() {
         if (onPreparedListener != null) {
@@ -57,7 +58,7 @@ public class AndPlayer {
     }
     public void onCallRenderYUV(int width, int height, byte[] y, byte[] u, byte[] v)
     {
-        // opengl渲染  的java版本
+        // opengl渲染
         if( this.andGLSfView != null)
         {
             this.andGLSfView.setYUVData(width, height, y, u, v);
@@ -65,7 +66,7 @@ public class AndPlayer {
     }
     public void onCallLoad(boolean load)
     {
-//        队列 网络 有问题    加载框
+        // 队列 网络 有问题    加载框
         // TODO
     }
 
@@ -124,7 +125,7 @@ public class AndPlayer {
     }
 
     /**
-     * java调用native层的接口
+     * java调用的native层接口
      */
     public native void n_prepared(String source);
     public native void n_start();

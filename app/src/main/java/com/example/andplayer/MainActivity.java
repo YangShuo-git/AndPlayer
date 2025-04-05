@@ -24,7 +24,7 @@ import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
-    private AndPlayer andPlayer;
+    private AndPlayer mAndPlayer;
     private AndGLSurfaceView andGLSurfaceView;
     private SeekBar seekBar;
     private TextView tvTime;
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);  // 设置的文件是layout文件夹下的activity_main.xml
+        setContentView(R.layout.activity_main);
 
         andGLSurfaceView = findViewById(R.id.andglsurfaceview);
         seekBar = findViewById(R.id.seekbar);
@@ -49,29 +49,34 @@ public class MainActivity extends AppCompatActivity {
         muteBtn = findViewById(R.id.mute);
         checkPermission();
 
-        andPlayer = new AndPlayer();
-        andPlayer.setAndGLSurfaceView(andGLSurfaceView);
+        mAndPlayer = new AndPlayer();
+        mAndPlayer.setAndGLSurfaceView(andGLSurfaceView);
 
-        File file = new File(Environment.getExternalStorageDirectory(),"input.mkv");
-        paths.add(file.getAbsolutePath());
-//        file = new File(Environment.getExternalStorageDirectory(),"input.avi");
-//        paths.add(file.getAbsolutePath());
+        setListeners();
+        addFileIndex();
+    }
 
-//        file = new File(Environment.getExternalStorageDirectory(),"input.rmvb");
-//        file = new File(Environment.getExternalStorageDirectory(),"input.mp4");
-        file = new File(Environment.getExternalStorageDirectory(),"brave_960x540.flv");
-        paths.add(file.getAbsolutePath());
-//        paths.add("http://mn.maliuedu.com/music/input.mp4");
-        andPlayer.setPlayerListener(new IPlayerListener() {
-            @Override
-            public void onLoad(boolean load) {
+    public boolean checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, 1);
 
-            }
+        }
+        return false;
+    }
+
+    /**
+     * 设置各种listener
+     */
+    public void setListeners() {
+        mAndPlayer.setPlayerListener(new IPlayerListener() {
             @Override
             public void onCurrentTime(int currentTime, int totalTime) {
                 // isSeek 需要当前时间、总时间
-                if(!isSeek && totalTime > 0)
-                {
+                if (!isSeek && totalTime > 0) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -81,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
+            }
+
+            @Override
+            public void onLoad(boolean load) {
             }
 
             @Override
@@ -108,85 +117,87 @@ public class MainActivity extends AppCompatActivity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                position = progress * andPlayer.getDuration() / 100;
+                position = progress * mAndPlayer.getDuration() / 100;
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 isSeek = true;
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                andPlayer.seek(position);
+                mAndPlayer.seek(position);
                 isSeek = false;
             }
         });
     }
 
-    public boolean checkPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-            }, 1);
+    public void addFileIndex() {
+        File file = new File(Environment.getExternalStorageDirectory(), "input.mkv");
+        paths.add(file.getAbsolutePath());
+//        file = new File(Environment.getExternalStorageDirectory(),"input.avi");
+//        paths.add(file.getAbsolutePath());
 
-        }
-        return false;
+//        file = new File(Environment.getExternalStorageDirectory(),"input.rmvb");
+//        file = new File(Environment.getExternalStorageDirectory(),"input.mp4");
+        file = new File(Environment.getExternalStorageDirectory(), "brave_960x540.flv");
+        paths.add(file.getAbsolutePath());
+//        paths.add("http://mn.maliuedu.com/music/input.mp4");
     }
 
     /**
      * 播放控制：开始 停止 暂停 恢复 切换
      */
     public void begin(View view) {
-        andPlayer.setOnPreparedListener(new IOnPreparedListener() {
+        mAndPlayer.setOnPreparedListener(new IOnPreparedListener() {
             @Override
             public void onPrepared() {
-                andPlayer.start();  // 监听到Prepared()完成，就开始解码
+                mAndPlayer.start();  // 监听到Prepared()完成，就开始解码
             }
         });
 
         //File file = new File(Environment.getExternalStorageDirectory(), "brave_960x540.flv");
-        //andPlayer.setSource(file.getAbsolutePath());
-        //andPlayer.setSource("http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4");
-        //andPlayer.setSource("http://demo-videos.qnsdk.com/VR-Panorama-Equirect-Angular-4500k.mp4");
-        andPlayer.setSource("http://vjs.zencdn.net/v/oceans.mp4");
-        andPlayer.prepared();
+        //mAndPlayer.setSource(file.getAbsolutePath());
+        //mAndPlayer.setSource("http://demo-videos.qnsdk.com/bbk-H265-50fps.mp4");
+        //mAndPlayer.setSource("http://demo-videos.qnsdk.com/VR-Panorama-Equirect-Angular-4500k.mp4");
+        mAndPlayer.setSource("http://vjs.zencdn.net/v/oceans.mp4");
+        mAndPlayer.prepared();
     }
     public void pause(View view) {
-        andPlayer.pause();
+        mAndPlayer.pause();
     }
     public void resume(View view) {
-        andPlayer.resume();
+        mAndPlayer.resume();
     }
     public void stop(View view) {
-        andPlayer.stop();
+        mAndPlayer.stop();
     }
     public void next(View view) {
-        //andPlayer.playNext("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
+        //mAndPlayer.playNext("http://sf1-hscdn-tos.pstatp.com/obj/media-fe/xgplayer_doc_video/flv/xgplayer-demo-360p.flv");
     }
     public void speed1(View view) {
-        andPlayer.setSpeed(0.5f);
+        mAndPlayer.setSpeed(0.5f);
     }
     public void speed2(View view) {
-        andPlayer.setSpeed(2.0f);
+        mAndPlayer.setSpeed(2.0f);
     }
     public void mute(View view) {
         if (!isMuted) {
-            andPlayer.setMute(2);
+            mAndPlayer.setMute(2);
             isMuted = true;
         } else {
-            andPlayer.setMute(3);
+            mAndPlayer.setMute(3);
             isMuted = false;
         }
     }
     public void highTone(View view) {
-        andPlayer.setTone(2.0f);
+        mAndPlayer.setTone(2.0f);
     }
     public void lowTone(View view) {
-        andPlayer.setTone(0.5f);
+        mAndPlayer.setTone(0.5f);
     }
     public void normal(View view) {
-        andPlayer.setSpeed(1.0f);
-        andPlayer.setTone(1.0f);
+        mAndPlayer.setSpeed(1.0f);
+        mAndPlayer.setTone(1.0f);
     }
 }
