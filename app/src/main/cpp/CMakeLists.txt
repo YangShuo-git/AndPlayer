@@ -10,7 +10,7 @@ project("andplayer")
 
 # 引入ffmpeg头文件目录
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-# 设置ffmpeg库的查找目录 (作用就是下面就可以直接写ffmpeg库的名字)
+# 设置ffmpeg库的查找目录 (好处：target_link_libraries中可以直接写ffmpeg库的名字)
 #   CMAKE_CXX_FLAGS用于存储 C++ 编译器的标志
 #   作用是将 JNI 库文件所在的路径添加到 C++ 编译器的标志中，以便编译器在链接阶段能够正确地查找和链接 JNI 库
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_CURRENT_SOURCE_DIR}/jniLibs/${ANDROID_ABI}")

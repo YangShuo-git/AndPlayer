@@ -14,6 +14,7 @@ android {
         versionName "1.0"
         //项目的ndk配置需和使用的库一致,项目的配置在这里设置
         ndk{
+            //noinspection ChromeOsAbiSupport,ChromeOsAbiSupport,ChromeOsAbiSupport
             abiFilters 'armeabi-v7a'
         }
         //指定jniLibs目录(只有这里的so库会被加载到apk中，不然apk报错：找不到so库)

@@ -14,8 +14,8 @@
 
 class AndCallJava {
 public:
-    _JavaVM *javaVM = NULL;
-    JNIEnv *jniEnv = NULL;
+    _JavaVM *javaVM = nullptr;
+    JNIEnv *jniEnv = nullptr;
     jobject jobj;
 
     jmethodID jmid_prepared;

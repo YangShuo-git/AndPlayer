@@ -9,7 +9,7 @@ AndCallJava::AndCallJava(_JavaVM *javaVM, JNIEnv *env, jobject obj) {
     this->jniEnv = env;
     this->jobj = env->NewGlobalRef(obj);
 
-    jclass jlz = jniEnv->GetObjectClass(jobj);
+    jclass jlz = jniEnv->GetObjectClass(this->jobj);
     jmid_prepared = env->GetMethodID(jlz, "onCallPrepared", "()V");
     jmid_timeinfo = env->GetMethodID(jlz, "onCallTimeInfo", "(II)V");
     jmid_load = env->GetMethodID(jlz, "onCallLoad", "(Z)V");
@@ -23,12 +23,10 @@ void AndCallJava::onCallPrepared(int type) {
         // 主线程的jniEnv， 由 JVM 自动管理，可直接使用
         jniEnv->CallVoidMethod(jobj, jmid_prepared);
     } else if(type == CHILD_THREAD) {
-        JNIEnv *childJniEnv;
         // 子线程的JNIEnv，必须通过 AttachCurrentThread 获取
+        JNIEnv *childJniEnv;
         if (javaVM->AttachCurrentThread(&childJniEnv, 0) != JNI_OK) {
-            if (LOG_DEBUG) {
-                LOGE("get child thread jnienv worng");
-            }
+            LOGE("get child thread jnienv wrong");
             return;
         }
         childJniEnv->CallVoidMethod(jobj, jmid_prepared);

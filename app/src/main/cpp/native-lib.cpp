@@ -27,16 +27,17 @@ Java_com_example_andplayer_service_AndPlayer_n_1prepared(JNIEnv *env, jobject th
                                                          jstring _source) {
     const char *source = env->GetStringUTFChars(_source, 0);
 
-    if (ffmpeg == NULL) {
-        if (callJava == NULL) {
+    if (ffmpeg == nullptr) {
+        if (callJava == nullptr) {
             callJava = new AndCallJava(javaVM, env, thiz);
         }
         playStatus = new AndPlayStatus();
         ffmpeg = new AndFFmpeg(playStatus, callJava, source);
+
         ffmpeg->prepared();
     }
 
-//    env->ReleaseStringUTFChars(source_,source);
+    env->ReleaseStringUTFChars(_source, source);
 }
 extern "C"
 JNIEXPORT void JNICALL
@@ -50,9 +51,6 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_andplayer_service_AndPlayer_n_1stop(JNIEnv *env, jobject thiz) {
     if(ffmpeg != NULL) {
-        ffmpeg->release();
-        delete ffmpeg;
-        ffmpeg = nullptr;
         if (callJava != NULL) {
             delete callJava;
             callJava = NULL;
@@ -61,6 +59,10 @@ Java_com_example_andplayer_service_AndPlayer_n_1stop(JNIEnv *env, jobject thiz) 
             delete playStatus;
             playStatus = NULL;
         }
+
+        ffmpeg->release();
+        delete ffmpeg;
+        ffmpeg = nullptr;
     }
 }
 extern "C"

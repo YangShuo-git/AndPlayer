@@ -28,37 +28,30 @@ void AndFFmpeg::prepared() {
     pthread_create(&demuxThread, NULL, demuxFFmpeg, this);
 }
 
-// 打开解码器
 int AndFFmpeg::openDecoder (AVCodecContext **codecCtx, AVCodecParameters *codecpar) {
-    /* ************************ 打开解码器4步曲 ************************ */
+    /* ************************ 打开解码器 ************************ */
     *codecCtx = avcodec_alloc_context3(NULL);
     if(!*codecCtx){
-        if(LOG_DEBUG){
-            LOGE("Couldn't alloc new decoderCtx");
-        }
+        LOGE("Couldn't alloc new decoderCtx");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return -1;
     }
     if (avcodec_parameters_to_context(*codecCtx, codecpar) < 0) {
-        if(LOG_DEBUG){
-            LOGE("Couldn't fill decoderCtx");
-        }
+        LOGE("Couldn't fill decoderCtx");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return -1;
     }
     AVCodec *decoder = avcodec_find_decoder(codecpar->codec_id);
     if(!decoder){
-        if(LOG_DEBUG){
-            LOGE("Couldn't find decoder");
-        }
+        LOGE("Couldn't find decoder");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return -1;
     }
     if (avcodec_open2(*codecCtx , decoder, NULL) < 0) {
-        LOGE("Couldn't open vAudio codec.\n");
+        LOGE("Couldn't open codec.\n");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return -1;
@@ -67,57 +60,53 @@ int AndFFmpeg::openDecoder (AVCodecContext **codecCtx, AVCodecParameters *codecp
     return 0;
 }
 
-// 解封装
 int AndFFmpeg::demuxFFmpegThread() {
     pthread_mutex_lock(&init_mutex);
-    // 初始化网络库
+
     avformat_network_init();
 
-    /* ************************ 解封装3步曲 ************************ */
-    // 1.分配解码器上下文，用于填充码流信息
+    /* ************************ 解封装 ************************ */
+    // 1.打开文件，将码流信息填充进AVFormatContext
     formatCtx = avformat_alloc_context();
-    // 2.打开文件并解析
     if (avformat_open_input(&formatCtx, url, NULL, NULL) != 0) {
         LOGE("Couldn't open input stream %s.\n", url);
         return -1;
     }
-    // 3.查找流的上下文信息，并填充Stream的MetaData信息
+    // 2.获取码流的完整信息，并填充进AVFormatContext
     if (avformat_find_stream_info(formatCtx, NULL) < 0) {
         LOGE("Couldn't find stream information\n");
         return -1;
     }
 
-    // 遍历获取流索引、解码器参数
+    // 3.遍历所有流，并从AVFormatContext中拿到流的详细信息:解码器参数、时间基等
     for (int i = 0; i < formatCtx->nb_streams; ++i) {
         if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (andAudio == NULL) {
                 andAudio = new AndAudio(playStatus, formatCtx->streams[i]->codecpar->sample_rate, callJava);
                 andAudio->streamIndex = i;
                 andAudio->codecpar = formatCtx->streams[i]->codecpar;
-
                 andAudio->time_base = formatCtx->streams[i]->time_base;
                 andAudio->duration = formatCtx->duration / AV_TIME_BASE;
                 duration = andAudio->duration;
-                LOGD("andAudio->time_base  den: %d\n", andAudio->time_base.den);
-                LOGD("Found audio stream!\n");
+                LOGD("andAudio->time_base  den: %d, duration: %d\n", andAudio->time_base.den,
+                     duration);
             }
         } else if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             if (andVideo == NULL) {
                 andVideo = new AndVideo(playStatus, callJava);
                 andVideo->streamIndex = i;
                 andVideo->codecpar = formatCtx->streams[i]->codecpar;
-
                 andVideo->time_base = formatCtx->streams[i]->time_base;
-                LOGD("andVideo->time_base  den: %d\n", andVideo->time_base.den);
+
                 int num = formatCtx->streams[i]->avg_frame_rate.num;
                 int den = formatCtx->streams[i]->avg_frame_rate.den;
-                if (num != 0 && den != 0)
-                {
+                if (num != 0 && den != 0) {
                     int fps = num / den;  // 计算视频的帧率
                     andVideo->defaultDelayTime = 1.0 / fps;  // 音视频同步时，视频的延迟时间
                 }
                 andVideo->delayTime = andVideo->defaultDelayTime;
-                LOGD("Found video stream! %f\n", andVideo->defaultDelayTime);
+                LOGD("andVideo->time_base  den: %d, defaultDelayTime: %f\n",
+                     andVideo->time_base.den, andVideo->defaultDelayTime);
             }
         }
     }
@@ -137,14 +126,12 @@ int AndFFmpeg::demuxFFmpegThread() {
     }
     pthread_mutex_unlock(&init_mutex);
 
-    // 回调java层函数，可以将一些状态回调到java层
-    // 这里是子线程，所用传递参数 CHILD_THREAD
+    // 回调java层函数，可以将一些状态回调到java层; 这里是子线程，所以传递参数 CHILD_THREAD
     callJava->onCallPrepared(CHILD_THREAD);
 
     return 0;
 }
 
-// 解码
 int AndFFmpeg::start() {
     if(andAudio == NULL) {
         if(LOG_DEBUG) {
