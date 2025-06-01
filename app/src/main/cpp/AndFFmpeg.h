@@ -22,13 +22,13 @@ public:
     pthread_mutex_t init_mutex;
     bool exit = false;
 
-    const char *url = NULL;
-    AVFormatContext *formatCtx = NULL;
+    const char *url = nullptr;
+    AVFormatContext *formatCtx = nullptr;
 
-    AndAudio *andAudio = NULL;
-    AndVideo *andVideo = NULL;
-    AndCallJava *callJava = NULL;
-    AndPlayStatus *playStatus = NULL;
+    AndAudio *andAudio = nullptr;
+    AndVideo *andVideo = nullptr;
+    AndCallJava *callJava = nullptr;
+    AndPlayStatus *playStatus = nullptr;
 
     int duration = 0;
 

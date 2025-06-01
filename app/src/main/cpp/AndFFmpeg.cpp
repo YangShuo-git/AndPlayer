@@ -11,8 +11,8 @@ AndFFmpeg::AndFFmpeg(AndPlayStatus *playStatus, AndCallJava *callJava, const cha
     this->callJava = callJava;
     this->url = url;
 
-    pthread_mutex_init(&seek_mutex, NULL);
-    pthread_mutex_init(&init_mutex, NULL);
+    pthread_mutex_init(&seek_mutex, nullptr);
+    pthread_mutex_init(&init_mutex, nullptr);
 }
 
 void *demuxFFmpeg(void *handler)
@@ -25,12 +25,12 @@ void *demuxFFmpeg(void *handler)
 
 void AndFFmpeg::prepared() {
     LOGD("create demux thread.");
-    pthread_create(&demuxThread, NULL, demuxFFmpeg, this);
+    pthread_create(&demuxThread, nullptr, demuxFFmpeg, this);
 }
 
 int AndFFmpeg::openDecoder (AVCodecContext **codecCtx, AVCodecParameters *codecpar) {
     /* ************************ 打开解码器 ************************ */
-    *codecCtx = avcodec_alloc_context3(NULL);
+    *codecCtx = avcodec_alloc_context3(nullptr);
     if(!*codecCtx){
         LOGE("Couldn't alloc new decoderCtx");
         exit = true;
@@ -50,7 +50,7 @@ int AndFFmpeg::openDecoder (AVCodecContext **codecCtx, AVCodecParameters *codecp
         pthread_mutex_unlock(&init_mutex);
         return -1;
     }
-    if (avcodec_open2(*codecCtx , decoder, NULL) < 0) {
+    if (avcodec_open2(*codecCtx, decoder, nullptr) < 0) {
         LOGE("Couldn't open codec.\n");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
@@ -68,12 +68,12 @@ int AndFFmpeg::demuxFFmpegThread() {
     /* ************************ 解封装 ************************ */
     // 1.打开文件，将码流信息填充进AVFormatContext
     formatCtx = avformat_alloc_context();
-    if (avformat_open_input(&formatCtx, url, NULL, NULL) != 0) {
+    if (avformat_open_input(&formatCtx, url, nullptr, nullptr) != 0) {
         LOGE("Couldn't open input stream %s.\n", url);
         return -1;
     }
     // 2.获取码流的完整信息，并填充进AVFormatContext
-    if (avformat_find_stream_info(formatCtx, NULL) < 0) {
+    if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
         LOGE("Couldn't find stream information\n");
         return -1;
     }
@@ -81,7 +81,7 @@ int AndFFmpeg::demuxFFmpegThread() {
     // 3.遍历所有流，并从AVFormatContext中拿到流的详细信息:解码器参数、时间基等
     for (int i = 0; i < formatCtx->nb_streams; ++i) {
         if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            if (andAudio == NULL) {
+            if (andAudio == nullptr) {
                 andAudio = new AndAudio(playStatus, formatCtx->streams[i]->codecpar->sample_rate, callJava);
                 andAudio->streamIndex = i;
                 andAudio->codecpar = formatCtx->streams[i]->codecpar;
@@ -92,7 +92,7 @@ int AndFFmpeg::demuxFFmpegThread() {
                      duration);
             }
         } else if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            if (andVideo == NULL) {
+            if (andVideo == nullptr) {
                 andVideo = new AndVideo(playStatus, callJava);
                 andVideo->streamIndex = i;
                 andVideo->codecpar = formatCtx->streams[i]->codecpar;
@@ -116,11 +116,11 @@ int AndFFmpeg::demuxFFmpegThread() {
     }
     /* ************************** 解封装结束 ************************** */
 
-    if (andAudio != NULL) {
+    if (andAudio != nullptr) {
         openDecoder(&andAudio->codecCtx, andAudio->codecpar);
         LOGD("success to open audio decoder.\n");
     }
-    if (andVideo != NULL) {
+    if (andVideo != nullptr) {
         openDecoder(&andVideo->codecCtx, andVideo->codecpar);
         LOGD("success to open video decoder.\n");
     }
@@ -133,17 +133,15 @@ int AndFFmpeg::demuxFFmpegThread() {
 }
 
 int AndFFmpeg::start() {
-    if(andAudio == NULL) {
-        if(LOG_DEBUG) {
-            LOGE("andAudio is null");
-            return -1;
-        }
+    if (andAudio == nullptr) {
+        LOGE("andAudio is null");
+        return -1;
     }
     andAudio->play();
     andVideo->play();
     andVideo->vAudio = andAudio;  // 用于音视频同步
 
-    while (playStatus != NULL && !playStatus->isExited) {
+    while (playStatus != nullptr && !playStatus->isExited) {
         if (playStatus->isSeek) {
             continue;
         }
@@ -152,32 +150,27 @@ int AndFFmpeg::start() {
             continue;
         }
         // 放入队列  40这个值可以设大一点
-        if (andAudio->queue->getQueueSize() > 40 || andVideo->queue->getQueueSize() > 40) {
+        if (andAudio->queue->getQueueSize() > 80 || andVideo->queue->getQueueSize() > 80) {
             continue;
         }
 
         AVPacket *avPacket = av_packet_alloc();
         // 用户停止 或者最后一帧 文件末尾  要有清空队列的操作
-        if(av_read_frame(formatCtx, avPacket) == 0)
-        {
-            if(avPacket->stream_index == andAudio->streamIndex)
-            {
+        if (av_read_frame(formatCtx, avPacket) == 0) {
+            if (avPacket->stream_index == andAudio->streamIndex) {
                 andAudio->queue->putAvpacket(avPacket);
-            } else if (avPacket->stream_index == andVideo->streamIndex)
-            {
+            } else if (avPacket->stream_index == andVideo->streamIndex) {
                 andVideo->queue->putAvpacket(avPacket);
-            } else
-            {
+            } else {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
             }
-        } else
-        {
+        } else {
             av_packet_free(&avPacket);
             av_free(avPacket);
 
             //特殊情况
-            while (playStatus != NULL && !playStatus->isExited) {
+            while (playStatus != nullptr && !playStatus->isExited) {
                 if (andVideo->queue->getQueueSize() > 0) {
                     continue;
                 }
@@ -190,7 +183,7 @@ int AndFFmpeg::start() {
             }
         }
 
-        if (playStatus != NULL && playStatus->isExited) {
+        if (playStatus != nullptr && playStatus->isExited) {
             andAudio->queue->clearAvpacket();
             playStatus->isExited = true;
         }
@@ -202,18 +195,15 @@ void AndFFmpeg::pause() {
     playStatus->isPaused = true;
     playStatus->isSeek = false;
     playStatus->isPlaying = false;
-    if (andAudio != NULL) {
+    if (andAudio != nullptr) {
         andAudio->pause();
     }
-    if (andVideo != NULL) {
+    if (andVideo != nullptr) {
         andVideo->pause();
     }
 }
 
 void AndFFmpeg::release() {
-    if (LOG_DEBUG) {
-        LOGD("Release AndFFmpeg.");
-    }
     playStatus->isExited = true;
     //  队列  stop
     // 通过忙等待（busy-wait）的方式确保资源释放的线程安全性
@@ -227,45 +217,43 @@ void AndFFmpeg::release() {
         av_usleep(1000 * 10); //暂停10毫秒
     }
 
-    if(andAudio != NULL)
-    {
-        andAudio->release();
-        delete(andAudio);
-        andAudio = NULL;
-    }
-
-    if(andVideo != NULL)
-    {
-        andVideo->release();
-        delete(andVideo);
-        andVideo = NULL;
-    }
-
-    if(LOG_DEBUG)
-    {
-        LOGD("AndFFmpeg: release formatCtx.");
-    }
-    if(formatCtx != NULL)
-    {
+    if (formatCtx != nullptr) {
         avformat_close_input(&formatCtx);
         avformat_free_context(formatCtx);
-        formatCtx = NULL;
+        formatCtx = nullptr;
     }
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
+        LOGD("AndFFmpeg: release formatCtx.");
+    }
+
+    if (andAudio != nullptr) {
+        andAudio->release();
+        delete(andAudio);
+        andAudio = nullptr;
+    }
+    if (andVideo != nullptr) {
+        andVideo->release();
+        delete(andVideo);
+        andVideo = nullptr;
+    }
+    if (LOG_DEBUG) {
+        LOGD("AndFFmpeg: release andAudio and andVideo.");
+    }
+
+    if (callJava != nullptr)
+        callJava = nullptr;
+    if (LOG_DEBUG) {
         LOGD("AndFFmpeg: release callJava.");
     }
-    if(callJava != NULL)
-    {
-        callJava = NULL;
-    }
-    if(LOG_DEBUG)
-    {
+
+    if (playStatus != nullptr)
+        playStatus = nullptr;
+    if (LOG_DEBUG) {
         LOGD("AndFFmpeg: release playstatus.");
     }
-    if(playStatus != NULL)
-    {
-        playStatus = NULL;
+
+    if (LOG_DEBUG) {
+        LOGD("Release AndFFmpeg.");
     }
     pthread_mutex_unlock(&init_mutex);
 }
@@ -275,19 +263,17 @@ void AndFFmpeg::resume() {
     playStatus->isSeek = false;
     playStatus->isPlaying = true;
 
-    if (andAudio != NULL) {
+    if (andAudio != nullptr) {
         andAudio->resume();
     }
-    if (andVideo != NULL) {
+    if (andVideo != nullptr) {
         andVideo->resume();
     }
 }
 
 void AndFFmpeg::seek(jint secds) {
     if (duration <= 0)
-    {
         return;
-    }
 
     if (secds >= 0 && secds <= duration)
     {
@@ -296,12 +282,12 @@ void AndFFmpeg::seek(jint secds) {
         int64_t rel = secds * AV_TIME_BASE;  // s    *  us
         // isSeek 是调用ffmpeg的avformat_seek_file
         avformat_seek_file(formatCtx, -1, INT64_MIN, rel, INT64_MAX, 0);
-        if (andAudio != NULL) {
+        if (andAudio != nullptr) {
             andAudio->queue->clearAvpacket();
             andAudio->clock = 0;
             andAudio->last_time = 0;
         }
-        if (andVideo != NULL) {
+        if (andVideo != nullptr) {
             andVideo->queue->clearAvpacket();
         }
         playStatus->isSeek = false;
@@ -310,21 +296,21 @@ void AndFFmpeg::seek(jint secds) {
 }
 
 void AndFFmpeg::setMute(jint mute) {
-    if(andAudio != NULL)
+    if (andAudio != nullptr)
     {
         andAudio->setMute(mute);
     }
 }
 
 void AndFFmpeg::setSpeed(float speed) {
-    if(andAudio != NULL)
+    if (andAudio != nullptr)
     {
         andAudio->setSpeed(speed);
     }
 }
 
 void AndFFmpeg::setTone(float tone) {
-    if(andAudio != NULL)
+    if (andAudio != nullptr)
     {
         andAudio->setTone(tone);
     }

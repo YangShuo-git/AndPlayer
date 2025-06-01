@@ -34,7 +34,7 @@ static void* decodePlay(void *data) {
 
 void AndAudio::play() {
     LOGD("create audio decode thread.");
-    pthread_create(&thread_play, NULL, decodePlay, this);
+    pthread_create(&thread_play, nullptr, decodePlay, this);
 }
 
 // 获取采样率
@@ -93,7 +93,7 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void * handler)
     // AudioTrack 是被动 先解码，再送给AudioTrack
     // opengsl es 是主动 先触发opensl，再解码
     AndAudio *andAudio = (AndAudio *) handler;
-    if(andAudio != NULL) {
+    if (andAudio != nullptr) {
         // 喇叭配置 44100 2 2   数据量则有 44100*2*2 个字节  要1s播放完
 //         int bufferSize = andAudio->resampleAudio();   // 未经soundTouch处理的pcm数据大小
         int bufferSize = andAudio->getSoundTouchData();  // 经过soundTouch处理的pcm数据大小
@@ -117,13 +117,13 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void * handler)
 // 解码一帧音频，并进行重采样
 // 主要是获取解码后的pcm数据(outBuffer)及其实际大小(bufferSize)  因为opensl需要这两个
 int AndAudio::resampleAudio(void **pcmBuf) {
-    while (playStatus != NULL && !playStatus->isExited) {
+    while (playStatus != nullptr && !playStatus->isExited) {
         avPacket = av_packet_alloc();
         if (queue->getAvpacket(avPacket) != 0) {
             // 释放3步曲
             av_packet_free(&avPacket);  // 释放AVPacket里的容器 data
             av_free(avPacket);          // 释放对象avPacket
-            avPacket = NULL;
+            avPacket = nullptr;
             continue;
         }
 
@@ -132,14 +132,14 @@ int AndAudio::resampleAudio(void **pcmBuf) {
         {
             av_packet_free(&avPacket);
             av_free(avPacket);
-            avPacket = NULL;
+            avPacket = nullptr;
             continue;
         }
         avFrame = av_frame_alloc();
         ret = avcodec_receive_frame(codecCtx, avFrame);
         if(ret == 0) {
             // 转换器上下文
-            SwrContext *swr_ctx = NULL;
+            SwrContext *swr_ctx = nullptr;
             // 设值输入参数 和 输出参数   （通道布局、采样格式、采样率）
             swr_ctx = swr_alloc_set_opts(NULL,
                     AV_CH_LAYOUT_STEREO,AV_SAMPLE_FMT_S16,avFrame->sample_rate,
@@ -149,10 +149,10 @@ int AndAudio::resampleAudio(void **pcmBuf) {
             {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
-                avPacket = NULL;
+                avPacket = nullptr;
                 av_frame_free(&avFrame);
                 av_free(avFrame);
-                avFrame = NULL;
+                avFrame = nullptr;
                 swr_free(&swr_ctx);
                 continue;
             }
@@ -178,20 +178,20 @@ int AndAudio::resampleAudio(void **pcmBuf) {
 
             av_packet_free(&avPacket);
             av_free(avPacket);
-            avPacket = NULL;
+            avPacket = nullptr;
             av_frame_free(&avFrame);
             av_free(avFrame);
-            avFrame = NULL;
+            avFrame = nullptr;
             swr_free(&swr_ctx);
             break;
         } else{
             av_packet_free(&avPacket);
             av_free(avPacket);
-            avPacket = NULL;
+            avPacket = nullptr;
 
             av_frame_free(&avFrame);
             av_free(avFrame);
-            avFrame = NULL;
+            avFrame = nullptr;
             continue;
         }
     }
@@ -288,7 +288,7 @@ void AndAudio::initOpenSLES() {
 // 有关音频播放的相关操作，都在OpenSL ES的操作接口中
 void AndAudio::pause() {
     queue->lock();
-    if(pcmPlayerPlay != NULL)
+    if (pcmPlayerPlay != nullptr)
     {
         (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PAUSED);
     }
@@ -296,14 +296,14 @@ void AndAudio::pause() {
 
 void AndAudio::resume() {
     queue->unlock();
-    if(pcmPlayerPlay != NULL)
+    if (pcmPlayerPlay != nullptr)
     {
         (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
     }
 }
 
 void AndAudio::setVolume(int percent) {
-    if(pcmVolumePlay != NULL) {
+    if (pcmVolumePlay != nullptr) {
         if (percent > 30) {
             (*pcmVolumePlay)->SetVolumeLevel(pcmVolumePlay, (100 - percent) * -20);
         } else if (percent > 25) {
@@ -335,7 +335,7 @@ SLmillibel AndAudio::getVolume() {
 void AndAudio::setMute(int mute) {
     LOGD(" 声道  接口%p", pcmMutePlay);
     LOGD(" 声道  接口%d", mute);
-    if(pcmMutePlay == NULL)
+    if (pcmMutePlay == nullptr)
     {
         LOGE("pcmMutePlay is null");
         if ( mute == 2 )
@@ -373,9 +373,9 @@ void AndAudio::setMute(int mute) {
 // 获取整理之后的波形  倍速 波形变小；慢放 波形变大
 int AndAudio::getSoundTouchData() {
     //我们先取数据 pcm就在out_buffer
-    while (playStatus != NULL && !playStatus->isExited) {
+    while (playStatus != nullptr && !playStatus->isExited) {
 //        LOGE("------------------循环获取音频数据---------------------------finished %d",finished)
-        out_buffer = NULL;
+        out_buffer = nullptr;
         if (finished) {
             // 开始整理波形，没有完成
             finished = false;
@@ -403,7 +403,7 @@ int AndAudio::getSoundTouchData() {
             continue;
         } else
         {
-            if(out_buffer == NULL)
+            if (out_buffer == nullptr)
             {
                 num=soundTouch->receiveSamples(sampleBuffer, data_size / 4);
 //                LOGE("------------第二个num %d ",num);
@@ -422,70 +422,70 @@ int AndAudio::getSoundTouchData() {
 
 void AndAudio::setSpeed(float speed) {
     this->speed = speed;
-    if (soundTouch != NULL) {
+    if (soundTouch != nullptr) {
         soundTouch->setTempo(speed);
     }
 }
 
 void AndAudio::setTone(float tone) {
     this->speed = speed;
-    if (soundTouch != NULL) {
+    if (soundTouch != nullptr) {
         soundTouch->setPitch(tone);
     }
 }
 
 void AndAudio::release() {
-    if(queue != NULL)
+    if (queue != nullptr)
     {
         delete(queue);
-        queue = NULL;
+        queue = nullptr;
     }
-    if(pcmPlayerObject != NULL)
+    if (pcmPlayerObject != nullptr)
     {
         (*pcmPlayerObject)->Destroy(pcmPlayerObject);
-        pcmPlayerObject = NULL;
-        pcmPlayerPlay = NULL;
-        pcmBufferQueue = NULL;
+        pcmPlayerObject = nullptr;
+        pcmPlayerPlay = nullptr;
+        pcmBufferQueue = nullptr;
     }
-    if(outputMixObject != NULL)
+    if (outputMixObject != nullptr)
     {
         (*outputMixObject)->Destroy(outputMixObject);
-        outputMixObject = NULL;
-        outputMixEnvironmentalReverb = NULL;
+        outputMixObject = nullptr;
+        outputMixEnvironmentalReverb = nullptr;
     }
-    if(engineObject != NULL)
+    if (engineObject != nullptr)
     {
         (*engineObject)->Destroy(engineObject);
-        engineObject = NULL;
-        engineEngine = NULL;
+        engineObject = nullptr;
+        engineEngine = nullptr;
     }
-    if(outBuffer != NULL)
+    if (outBuffer != nullptr)
     {
         free(outBuffer);
-        outBuffer = NULL;
+        outBuffer = nullptr;
     }
-    if(sampleBuffer != NULL)
+    if (sampleBuffer != nullptr)
     {
         free(sampleBuffer);
-        sampleBuffer = NULL;
+        sampleBuffer = nullptr;
     }
-    if(soundTouch != NULL)
+    if (soundTouch != nullptr)
     {
         delete soundTouch;
-        soundTouch = NULL;
+        soundTouch = nullptr;
     }
-    if(codecCtx != NULL)
+    if (codecCtx != nullptr)
     {
         avcodec_close(codecCtx);
         avcodec_free_context(&codecCtx);
-        codecCtx = NULL;
+        codecCtx = nullptr;
     }
-    if(playStatus != NULL)
+    if (playStatus != nullptr)
     {
-        playStatus = NULL;
+        playStatus = nullptr;
     }
-    if(callJava != NULL)
+    if (callJava != nullptr)
     {
-        callJava = NULL;
+        callJava = nullptr;
     }
 }
