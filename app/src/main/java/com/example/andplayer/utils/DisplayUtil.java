@@ -1,4 +1,4 @@
-package com.example.andplayer.ui.utils;
+package com.example.andplayer.utils;
 
 public class DisplayUtil {
     public static String secdsToDateFormat(int secds ) {

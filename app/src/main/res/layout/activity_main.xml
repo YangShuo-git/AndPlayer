@@ -55,7 +55,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="播放"
+            android:text="继续"
             android:onClick="resume"/>
 <!--        <Button-->
 <!--            android:layout_width="match_parent"-->

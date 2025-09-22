@@ -16,7 +16,7 @@ import com.example.andplayer.lisnter.IOnPreparedListener;
 import com.example.andplayer.lisnter.IPlayerListener;
 import com.example.andplayer.opengl.AndGLSurfaceView;
 import com.example.andplayer.service.AndPlayer;
-import com.example.andplayer.ui.utils.DisplayUtil;
+import com.example.andplayer.utils.DisplayUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 播放控制：开始 停止 暂停 恢复 切换
+     * 播放控制：开始 停止 暂停 继续
      */
     public void begin(View view) {
         mAndPlayer.setOnPreparedListener(new IOnPreparedListener() {
